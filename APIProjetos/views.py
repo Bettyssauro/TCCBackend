@@ -55,7 +55,7 @@ class ImagemRotuladaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def mesmasimagens(self, request, pk=None):
         imagemr = self.get_object()
-        serializer= ImagemSerializer(imagemr.imagem.imagensrotuladas, many=True)
+        serializer= ImagemSerializer(imagemr.imagem.imagensrotuladas, many=True,context={'request': request})
         return Response(serializer.data)
     
     #RETORNA AS IMAGENS ROTULADAS QUE RECEBERAM O MESMO ROTULO (OU SEJA, UMA LISTA DE IMAGENS ROTULADAS COM O MESMO ROTULO)
@@ -63,7 +63,7 @@ class ImagemRotuladaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def mesmosrotulos(self, request, pk=None):
         imagemr = self.get_object()
-        serializer= ImagemSerializer(imagemr.rotulo.imagensrotuladas, many=True)
+        serializer= ImagemSerializer(imagemr.rotulo.imagensrotuladas, many=True,context={'request': request})
         return Response(serializer.data)
 
 class ProjetoViewSet(viewsets.ModelViewSet):
@@ -143,7 +143,7 @@ class ProjetoViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def rotulos(self, request, pk=None):
         projeto = self.get_object()
-        serializer= RotuloSerializer(projeto.rotulos.all(), many=True)
+        serializer= RotuloSerializer(projeto.rotulos.all(), many=True,context={'request': request})
         return Response(serializer.data)
 
 class RotuloViewSet(viewsets.ModelViewSet):
@@ -163,7 +163,7 @@ class RotuloViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def imagensrotuladas(self, request, pk=None):
         rotulo = self.get_object()
-        serializer= ImagemRotuladaSerializer(rotulo.imagensrotuladas.all(), many=True)
+        serializer= ImagemRotuladaSerializer(rotulo.imagensrotuladas.all(), many=True,context={'request': request})
         return Response(serializer.data)
     
     #RECEBE NOME DO ROTULO

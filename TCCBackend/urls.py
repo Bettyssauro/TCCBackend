@@ -18,9 +18,21 @@ from django.contrib import admin
 from django.urls import path, include
 from APIProjetos.urls import router
 from rest_framework.authtoken.views import obtain_auth_token
+from django.conf import settings
+from django.urls import re_path
+from django.views.static import serve
 urlpatterns = [
     path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
 ]
+urlpatterns += [
+        re_path(
+            r"^media/(?P<path>.*)$",
+            serve,
+            {
+                "document_root": settings.MEDIA_ROOT,
+            },
+        ),
+    ]
