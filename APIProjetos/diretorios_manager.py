@@ -2,6 +2,7 @@ import os
 import shutil
 
 def criar_diretorio_projeto(projeto, diretorio_base):
+    
 
     diretorio_treino = os.path.join(diretorio_base, 'treino')
     diretorio_teste = os.path.join(diretorio_base, 'teste')

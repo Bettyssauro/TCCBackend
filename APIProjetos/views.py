@@ -93,7 +93,8 @@ class ProjetoViewSet(viewsets.ModelViewSet):
         caminho_atual = os.path.abspath(__file__)
         diretorio_pai = os.path.dirname(caminho_atual)
         diretorio_avo = os.path.dirname(diretorio_pai)
-        diretorio_base = os.path.join(diretorio_avo, request.data['titulo'])  
+        nomedodiretorio= re.sub(r'[^a-zA-Z0-9]', '_', request.data['titulo'])
+        diretorio_base = os.path.join(diretorio_avo, nomedodiretorio)   
         
 
         usuario = request.user
