@@ -144,12 +144,8 @@ class ProjetoViewSet(viewsets.ModelViewSet):
     def dataset(self, request, pk=None):
         instance = self.get_object()
         endereco = instance.endereco
-        caminho_atual = os.path.abspath(__file__)
-        diretorio_pai = os.path.dirname(caminho_atual)
-        diretorio_avo = os.path.dirname(diretorio_pai)
-        nomedodiretorio= re.sub(r'[^a-zA-Z0-9]', '_', instance.titulo)
-        diretorio_base = os.path.join(diretorio_avo, nomedodiretorio)  
-        criar_diretorio_projeto(instance,diretorio_base)
+
+        criar_diretorio_projeto(instance,endereco)
     
         if os.path.isdir(endereco):
        
