@@ -57,6 +57,7 @@ class ImagemRotulada(Base):
     usuario = models.ForeignKey(User,related_name='imagensrotuladas',on_delete=models.PROTECT)
     rotulo = models.ForeignKey(Rotulo,related_name='imagensrotuladas',on_delete=models.CASCADE)
     imagem = models.ForeignKey(Imagem,related_name='imagensrotuladas',on_delete=models.CASCADE)
+    treino = models.BooleanField(default=False)
 
     class Meta:
         unique_together = [ 'rotulo', 'imagem']

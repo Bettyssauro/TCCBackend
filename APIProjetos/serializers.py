@@ -18,6 +18,7 @@ class ImagemSerializer(serializers.ModelSerializer):
 
 
 class ImagemRotuladaSerializer(serializers.ModelSerializer):
+    treino = serializers.BooleanField()
     imagem = serializers.HyperlinkedRelatedField( read_only=True,  view_name='imagem-detail')
     class Meta:
         model = ImagemRotulada
@@ -26,7 +27,8 @@ class ImagemRotuladaSerializer(serializers.ModelSerializer):
             'usuario',
             'rotulo',
             'imagem',
-            'criacao'
+            'criacao',
+            'treino'
        
         )
 
@@ -41,6 +43,7 @@ class RotuloSerializer(serializers.ModelSerializer):
             'nome',
             'criacao',
             'imagensrotuladas'
+            
          
         )
 

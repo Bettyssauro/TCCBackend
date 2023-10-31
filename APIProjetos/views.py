@@ -10,7 +10,7 @@ from .diretorios_manager import criar_diretorio_projeto
 
 import os
 import zipfile
-
+import re
 
 class ImagemViewSet(viewsets.ModelViewSet):
     queryset = Imagem.objects.all()
@@ -28,6 +28,15 @@ class ImagemViewSet(viewsets.ModelViewSet):
 class ImagemRotuladaViewSet(viewsets.ModelViewSet):
     queryset = ImagemRotulada.objects.all()
     serializer_class = ImagemRotuladaSerializer
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)  
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+    
     #RECEBE SOMENTE OS IDS DE ROTULO E IMAGEM
     #RETORNA A IMAGEM ROTULADA Q FOI SALVA
     def create(self, request, *args, **kwargs):
@@ -71,11 +80,75 @@ class ProjetoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Projeto.objects.filter(usuario=self.request.user)
     serializer_class = ProjetoSerializer
-
-    def retrieve(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        endereco = instance.endereco  
+        serializer = self.get_serializer(instance, data=request.data, partial=True)  
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
+    
+
+    def create(self, request):
+        caminho_atual = os.path.abspath(__file__)
+        diretorio_pai = os.path.dirname(caminho_atual)
+        diretorio_avo = os.path.dirname(diretorio_pai)
+        diretorio_base = os.path.join(diretorio_avo, request.data['titulo'])  
+        
+
+        usuario = request.user
+
+        print(request.data)
+        if request.data.get('rotulos'):
+            rotulo_ids = request.data.get('rotulos', [])
+            try:
+
+                
+              
+                rotulos = Rotulo.objects.filter(id__in=rotulo_ids)
+
+                projeto = Projeto(usuario=usuario, titulo=request.data['titulo'], descricao=request.data['descricao'],endereco=diretorio_base)
+                projeto.save()
+              
+                projeto.rotulos.set(rotulos)
+             
+                projeto.save()
+
+                
+
+                serializer = ProjetoSerializer(projeto,context={'request': request})
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except Exception as e:
+             
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            projeto = Projeto(usuario=usuario, titulo=request.data['titulo'], descricao=request.data['descricao'],endereco=diretorio_base)
+            projeto.save()
+            
+            serializer = ProjetoSerializer(projeto,context={'request': request})
+            return Response(serializer.data)
+    
+    #RETORNA OS ROTULOS DO PROJETO
+    ##EXEMPLO .../PROJETOS/1/ROTULOS RETORNA OS ROTULOS UTILIZADOS NO PROJETO DE ID 1
+    @action(detail=True, methods=['get'])
+    def rotulos(self, request, pk=None):
+        projeto = self.get_object()
+        serializer= RotuloSerializer(projeto.rotulos.all(), many=True,context={'request': request})
+        return Response(serializer.data)
+    
+
+    #RETORNA O ZIPFILE DO PROJETO
+    ##EXEMPLO .../PROJETOS/1/DATASET RETORNA O PROJETO ORGANIZADO EM DIRETORIOS
+    @action(detail=True, methods=['get'])
+    def dataset(self, request, pk=None):
+        instance = self.get_object()
+        endereco = instance.endereco
+        caminho_atual = os.path.abspath(__file__)
+        diretorio_pai = os.path.dirname(caminho_atual)
+        diretorio_avo = os.path.dirname(diretorio_pai)
+        nomedodiretorio= re.sub(r'[^a-zA-Z0-9]', '_', instance.titulo)
+        diretorio_base = os.path.join(diretorio_avo, nomedodiretorio)  
+        criar_diretorio_projeto(instance,diretorio_base)
     
         if os.path.isdir(endereco):
        
@@ -98,53 +171,6 @@ class ProjetoViewSet(viewsets.ModelViewSet):
             response = Response({"error": "Diretório não encontrado"}, status=404)
 
         return response
-    
-
-    def create(self, request):
-        caminho_atual = os.path.abspath(__file__)
-        diretorio_pai = os.path.dirname(caminho_atual)
-        diretorio_avo = os.path.dirname(diretorio_pai)
-        diretorio_base = os.path.join(diretorio_avo, request.data['titulo'])
-
-        usuario = request.user
-
-        print(request.data)
-        if request.data.get('rotulos'):
-            rotulo_ids = request.data.get('rotulos', [])
-            try:
-
-                
-              
-                rotulos = Rotulo.objects.filter(id__in=rotulo_ids)
-
-                projeto = Projeto(usuario=usuario, titulo=request.data['titulo'], descricao=request.data['descricao'],endereco=diretorio_base)
-                projeto.save()
-              
-                projeto.rotulos.set(rotulos)
-             
-                projeto.save()
-
-                criar_diretorio_projeto(projeto,diretorio_base)
-
-                serializer = ProjetoSerializer(projeto)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except Exception as e:
-             
-                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            projeto = Projeto(usuario=usuario, titulo=request.data['titulo'], descricao=request.data['descricao'],endereco=diretorio_base)
-            projeto.save()
-            criar_diretorio_projeto(projeto,diretorio_base)
-            serializer = ProjetoSerializer(projeto)
-            return Response(serializer.data)
-    
-    #RETORNA OS ROTULOS DO PROJETO
-    ##EXEMPLO .../PROJETOS/1/ROTULOS RETORNA OS ROTULOS UTILIZADOS NO PROJETO DE ID 1
-    @action(detail=True, methods=['get'])
-    def rotulos(self, request, pk=None):
-        projeto = self.get_object()
-        serializer= RotuloSerializer(projeto.rotulos.all(), many=True,context={'request': request})
-        return Response(serializer.data)
 
 class RotuloViewSet(viewsets.ModelViewSet):
     queryset = Rotulo.objects.all()
